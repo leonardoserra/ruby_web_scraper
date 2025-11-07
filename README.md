@@ -14,6 +14,6 @@ A modular, memory-safe Ruby web crawler that downloads images and videos and per
    ```
 2. Run the crawler:
    ```bash
-   ruby bin/run.rb https://example.com
+    rake 'run[https://example.com,2]'
    ```
 3. Results will be in the `output/` directory.

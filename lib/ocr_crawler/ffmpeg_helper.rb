@@ -13,7 +13,9 @@ module OCRCrawler
     end
 
     def self.ffmpeg_command(video_path, frames_dir, fps)
-      "ffmpeg -hide_banner -loglevel error -i #{Shellwords.escape(video_path)} -vf fps=#{fps} #{File.join(frames_dir, 'frame_%04d.jpg')}"
+      "ffmpeg -hide_banner -loglevel error -i \
+      #{Shellwords.escape(video_path)} -vf fps=#{fps} \
+      #{File.join(frames_dir, 'frame_%04d.jpg')}"
     end
   end
 end

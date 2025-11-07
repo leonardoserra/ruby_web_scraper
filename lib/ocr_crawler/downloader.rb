@@ -5,6 +5,10 @@ require 'uri'
 require 'fileutils'
 
 module OCRCrawler
+  # ::Downloader
+  #
+  #  Purpose
+  #    Manages the download of 
   class Downloader
     BUFFER_SIZE = 16 * 1024 # 16 KB
 
@@ -24,7 +28,7 @@ module OCRCrawler
         request['User-Agent'] = config[:user_agent]
         http.request(request) do |response|
           unless response.is_a?(Net::HTTPSuccess)
-            Logger.warn('Failed to download ' + url.to_s + ': ' + response.code.to_s + ' ' + response.message)
+            Logger.warn("Failed to download  #{url}: #{response.code} #{response.message}")
             return nil
           end
 
@@ -38,7 +42,7 @@ module OCRCrawler
 
       local_path
     rescue StandardError => e
-      Logger.warn('Error downloading ' + url.to_s + ': ' + e.message)
+      Logger.warn("Error downloading #{url}: #{e.message}")
       nil
     end
   end

@@ -3,6 +3,11 @@
 require 'uri'
 
 module OCRCrawler
+  # ::LinkManager
+  #
+  # Purpose
+  #    Manages the link on the website and visit the
+  #    sub link based on the max_depth
   class LinkManager
     def initialize(config, queue, visited)
       @config = config
@@ -17,9 +22,11 @@ module OCRCrawler
       doc.css('a[href]').each do |link|
         href = link['href']
         next unless href
+
         url = normalize_url(href, base_url)
         next unless url
         next if visited?(url)
+
         enqueue(url, depth + 1)
       end
     end
@@ -38,7 +45,9 @@ module OCRCrawler
     end
 
     def normalize_url(href, base)
-      URI.join(base, href).to_s rescue nil
+      URI.join(base, href).to_s
+    rescue StandardError
+      nil
     end
   end
 end

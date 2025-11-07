@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 module OCRCrawler
+  # ::Crawler
+  #
+  # Purpose
+  #    Manage a Crawler instance running all its business logic components.
   class Crawler
     def initialize(config)
       @config = config
@@ -34,9 +38,10 @@ module OCRCrawler
     end
 
     def process_page(url, depth)
-      Logger.info('Processing ' + url.to_s + ' (depth ' + depth.to_s + ')')
+      Logger.info("Processing #{url} (depth #{depth})")
       doc = DocumentProcessor.fetch(url)
       return unless doc
+
       @image_manager.extract(doc, url, @results)
       @video_manager.extract(doc, url, @results)
       @link_manager.enqueue_links(doc, url, depth)
@@ -45,7 +50,9 @@ module OCRCrawler
     end
 
     def safe_dequeue
-      @queue.pop(true) rescue nil
+      @queue.pop(true)
+    rescue StandardError
+      nil
     end
   end
 end

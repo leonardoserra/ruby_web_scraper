@@ -4,6 +4,10 @@ require 'json'
 require 'fileutils'
 
 module OCRCrawler
+  # ::ResultRecorder
+  #
+  # Purpose
+  #   Handles the result file creation.
   class ResultRecorder
     def initialize(config)
       @config = config
@@ -17,7 +21,7 @@ module OCRCrawler
       FileUtils.mkdir_p(@config[:output_dir])
       file = File.join(@config[:output_dir], 'results.json')
       File.write(file, JSON.pretty_generate(results))
-      Logger.info('Results saved to ' + file)
+      Logger.info("Results saved to #{file}")
     end
   end
 end

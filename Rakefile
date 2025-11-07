@@ -31,10 +31,12 @@ task :clean do
 end
 
 desc 'Run the OCR Web Crawler'
-task :run, [:url] do |_, args|
+task :run, [:url, :max_depth] do |_, args|
   url = args[:url] || 'https://example.com'
+  max_depth = args[:max_depth] || 2
   puts "Starting crawl for: #{url}"
-  sh "bundle exec ruby bin/run.rb #{url}"
+  puts "Max depth set manually to: #{max_depth}" unless args[:max_depth].nil?
+  sh "bundle exec ruby bin/run.rb #{url} #{max_depth}"
 end
 
 desc 'Default: Run lint and tests'

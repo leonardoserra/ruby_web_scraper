@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Import all the modules needed.
 require_relative 'ocr_crawler/config'
 require_relative 'ocr_crawler/logger'
 require_relative 'ocr_crawler/memory_manager'
@@ -14,6 +15,7 @@ require_relative 'ocr_crawler/link_manager'
 require_relative 'ocr_crawler/result_recorder'
 require_relative 'ocr_crawler/crawler'
 
+# Entry point to start the execution.
 module OCRCrawler
   def self.run
     Initializer.setup

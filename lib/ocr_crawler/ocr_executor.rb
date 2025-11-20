@@ -3,11 +3,13 @@
 require 'rtesseract'
 require 'fileutils'
 
+# OCRCrawler
+# Top-level namespace for the OCR web crawler components.
 module OCRCrawler
-  # ::OCRExecutor
-  #
-  # Purpose
-  #    Tesseract ruby handler to run the OCR (Optical Character Recognition)
+  # OCRExecutor
+  # Wrapper around Tesseract (RTesseract) providing utilities to check Tesseract
+  # availability, perform OCR on a single image, and iterate OCR over frame
+  # directories producing standardized results.
   class OCRExecutor
     class << self
       def tesseract_available?
@@ -17,7 +19,10 @@ module OCRCrawler
       def ensure_tesseract!
         return if tesseract_available?
 
-        raise "Tesseract not installed or not in PATH. Please install Tesseract and ensure 'tesseract' is available in your PATH."
+        raise <<~ERROR.strip_indent
+          Tesseract not installed or not in PATH.
+          Please install Tesseract and ensure 'tesseract' is available in your PATH.
+        ERROR
       end
 
       def perform(path)

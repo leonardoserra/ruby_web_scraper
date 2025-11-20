@@ -2,17 +2,17 @@
 
 require 'fileutils'
 
+# OCRCrawler
+# Top-level namespace for the OCR web crawler components.
 module OCRCrawler
-  # ::Initializer
-  #
-  # Purpose
-  #   Bootstraps the OCRCrawler runtime by preparing the filesystem and runtime
-  #   environment so the remainder of the application can run reliably.
+  # Initializer
+  # Prepares the runtime environment (creates output directories, enables GC
+  # profiler if configured, and logs an initialization message).
   class Initializer
     class << self
       def setup
         create_directories
-        MemoryManager.setup_gc
+        MemoryManager.setup_gc if OCRCrawler::Config.load[:gc_interval].to_i.positive?
         Logger.info(init_message)
       end
 

@@ -15,28 +15,43 @@ end
 
 desc 'Run Rubocop to check for code style issues'
 task :lint do
-  sh 'bundle exec rubocop'
+  if system('bundle show rubocop > NUL 2>&1') || system('bundle show rubocop > /dev/null 2>&1')
+    sh 'bundle exec rubocop'
+  else
+    puts 'RuboCop not available. Run `bundle install` to enable linting.'
+  end
 end
 
 desc 'Generate YARD documentation'
 task :docs do
-  sh 'bundle exec yard doc'
+  if system('bundle show yard > NUL 2>&1') || system('bundle show yard > /dev/null 2>&1')
+    sh 'bundle exec yard doc'
+  else
+    puts 'YARD not available. Run `bundle install` to enable docs generation.'
+  end
 end
 
 desc 'Clean output and temporary files'
 task :clean do
   FileUtils.rm_rf(OUTPUT_DIR)
-  FileUtils.mkdir_p(OUTPUT_DIR)
-  puts "Cleaned #{OUTPUT_DIR} directory."
+  puts "Removed #{OUTPUT_DIR}/"
 end
 
 desc 'Run the OCR Web Crawler'
-task :run, [:url, :max_depth] do |_, args|
-  url = args[:url] || 'https://example.com'
-  max_depth = args[:max_depth] || 2
-  puts "Starting crawl for: #{url}"
-  puts "Max depth set manually to: #{max_depth}" unless args[:max_depth].nil?
-  sh "bundle exec ruby bin/run.rb #{url} #{max_depth}"
+task :run, [:url, :max_depth, :config] do |_, args|
+  url = args[:url]
+  max_depth = args[:max_depth]
+  config_path = args[:config] || File.join(Dir.pwd, 'config.yaml')
+
+  cmd_parts = []
+  cmd_parts << 'ruby bin/run.rb'
+  cmd_parts << config_path unless url && url =~ %r{\Ahttps?://}
+  cmd_parts << url if url
+  cmd_parts << max_depth if max_depth
+
+  cmd = cmd_parts.join(' ')
+  puts "Executing: #{cmd}"
+  sh cmd
 end
 
 desc 'Default: Run lint and tests'

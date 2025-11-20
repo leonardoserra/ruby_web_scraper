@@ -1,4 +1,4 @@
 *.zip
 *.exe
-results.json
+output/*.json
 output/*/*

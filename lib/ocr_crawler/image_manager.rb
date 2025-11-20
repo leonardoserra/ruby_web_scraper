@@ -3,10 +3,10 @@
 require 'uri'
 
 module OCRCrawler
+  # OCRCrawler::ImageManager
+  # Responsible for discovering image resources in a Nokogiri document using
+  # configured CSS selectors. Returns an array of result hashes with absolute URLs.
   class ImageManager
-    # OCRCrawler::ImageManager
-    # Responsible for discovering image resources in a Nokogiri document using
-    # configured CSS selectors. Returns an array of result hashes with absolute URLs.
     def initialize(config)
       @config = config
       @selectors = Array(@config.dig(:selectors, :images) || ['img'])

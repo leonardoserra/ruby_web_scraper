@@ -19,7 +19,10 @@ module OCRCrawler
       def ensure_tesseract!
         return if tesseract_available?
 
-        raise "Tesseract not installed or not in PATH. Please install Tesseract and ensure 'tesseract' is available in your PATH."
+        raise <<~ERROR.strip_indent
+          Tesseract not installed or not in PATH.
+          Please install Tesseract and ensure 'tesseract' is available in your PATH.
+        ERROR
       end
 
       def perform(path)

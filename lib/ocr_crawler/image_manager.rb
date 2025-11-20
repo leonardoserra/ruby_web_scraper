@@ -29,6 +29,8 @@ module OCRCrawler
 
     def selector_nodes(doc, sel)
       doc.css(sel).to_a
+    rescue Nokogiri::CSS::SyntaxError
+      []
     end
 
     def extract_url(node)
@@ -36,13 +38,17 @@ module OCRCrawler
     end
 
     def normalize_url(base, url)
-      URI.join(base, url).to_s
+      absolute = URI.join(base, url).to_s
+      uri = URI.parse(absolute)
+      return nil unless %w[http https].include?(uri.scheme)
+
+      absolute
     rescue URI::Error
       nil
     end
 
     def build_result(absolute, base_url)
-      { type: 'image', source: absolute, page: base_url }
+      { type: :image, source: absolute, page: base_url }
     end
   end
 end

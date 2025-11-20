@@ -97,7 +97,7 @@ Example fields:
 - `frame_rate`: fps used by FFmpeg when extracting frames from video.
 - `gc_interval`: how many pages processed per GC trigger (MemoryManager).
 - `max_depth`: maximum crawl depth from start URL.
-- `keep_files`: true | false, choose if the files downloaded are saved on disk or deleted.
+- `keep_files`: true | false, choose if the files analysed are saved on disk or deleted.
 - `selectors.images`: CSS selectors used to find images (nodes should have `src`, `data-src`, `content`, or `href`).
 - `selectors.videos`: CSS selectors used to find video resources (nodes should have `src`, `data-src`, `poster`, etc).
 - `user_agent`: optional HTTP User-Agent header used by downloads.

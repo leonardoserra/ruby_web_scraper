@@ -31,8 +31,8 @@ This project performs a crawl starting from one or more start URLs, finds images
 
 - Ruby 3.1 or newer
 - Bundler
-- Tesseract (system binary available in PATH) — required for OCR
-- FFmpeg (system binary available in PATH) — required for video frame extraction
+- Tesseract (system binary available in PATH) - required for OCR
+- FFmpeg (system binary available in PATH) - required for video frame extraction
 - Optional: Homebrew (macOS), apt (Debian/Ubuntu), dnf/yum (Fedora/CentOS), winget/choco (Windows) to install system packages
 
 ---
@@ -70,7 +70,7 @@ Platform-specific system package install:
   sudo dnf install -y ruby rubygems tesseract ffmpeg
   ```
 
-- Windows (PowerShell) — using winget (Windows 10/11)
+- Windows (PowerShell) - using winget (Windows 10/11)
   ```powershell
   winget install --id=Gyan.FFmpeg
   # For Tesseract use an available package or installer; ensure tesseract.exe is on PATH.
@@ -150,11 +150,11 @@ After the run completes:
 
 By default `output/` (or your configured `output_dir`) contains:
 
-- `output/images/` — downloaded images
-- `output/videos/` — downloaded video files
-- `output/video_frames/` — extracted frames for videos (organized per-video)
-- `output/results.json` — JSON file of discovered resources (pre-processing)
-- `output/processed_results.json` — JSON file including download paths and OCR text
+- `output/images/` - downloaded images
+- `output/videos/` - downloaded video files
+- `output/video_frames/` - extracted frames for videos (organized per-video)
+- `output/results.json` - JSON file of discovered resources (pre-processing)
+- `output/processed_results.json` - JSON file including download paths and OCR text
 
 `results.json` entries follow the format produced by `ResultRecorder.build`:
 ```json
@@ -190,10 +190,10 @@ After processing, `processed_results.json` will have `path` filled with local fi
 
 ## Troubleshooting
 
-- "tesseract: command not found" — install Tesseract and ensure PATH updated.
-- "ffmpeg: command not found" — install FFmpeg and ensure PATH updated.
-- Downloads failing — adjust `user_agent` in `config.yaml`.
-- If `output/` is missing — verify write permissions and `config.yaml` `output_dir`.
+- "tesseract: command not found" - install Tesseract and ensure PATH updated.
+- "ffmpeg: command not found" - install FFmpeg and ensure PATH updated.
+- Downloads failing - adjust `user_agent` in `config.yaml`.
+- If `output/` is missing - verify write permissions and `config.yaml` `output_dir`.
 
 ---
 
@@ -208,14 +208,14 @@ After processing, `processed_results.json` will have `path` filled with local fi
 ## Development notes
 
 - Core files:
-  - `lib/ocr_crawler/config.rb` — YAML config loader
-  - `lib/ocr_crawler/crawler.rb` — main orchestration
-  - `lib/ocr_crawler/link_manager.rb` — link extraction
-  - `lib/ocr_crawler/image_manager.rb` & `video_manager.rb` — selector-driven extraction
-  - `lib/ocr_crawler/downloader.rb` — HTTP resource downloader
-  - `lib/ocr_crawler/ffmpeg_helper.rb` — frame extraction helper (calls FFmpeg)
-  - `lib/ocr_crawler/ocr_executor.rb` — RTesseract wrapper
-  - `lib/ocr_crawler/result_recorder.rb` — save JSON results
+  - `lib/ocr_crawler/config.rb` - YAML config loader
+  - `lib/ocr_crawler/crawler.rb` - main orchestration
+  - `lib/ocr_crawler/link_manager.rb` - link extraction
+  - `lib/ocr_crawler/image_manager.rb` & `video_manager.rb` - selector-driven extraction
+  - `lib/ocr_crawler/downloader.rb` - HTTP resource downloader
+  - `lib/ocr_crawler/ffmpeg_helper.rb` - frame extraction helper (calls FFmpeg)
+  - `lib/ocr_crawler/ocr_executor.rb` - RTesseract wrapper
+  - `lib/ocr_crawler/result_recorder.rb` - save JSON results
 
 All modules/classes include short docstring comments.
 
@@ -223,4 +223,4 @@ All modules/classes include short docstring comments.
 
 ## License
 
-MIT — see LICENSE file.
+MIT - see LICENSE file.

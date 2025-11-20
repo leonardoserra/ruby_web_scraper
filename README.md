@@ -87,7 +87,7 @@ ffmpeg -version
 ## Setup (project)
 
 1. Ensure dependencies installed (see above).
-2. Create or edit `config.yaml` at project root. A sample `config.yaml` is included in the repository and can be adapted.
+2. Create or edit `config.yaml` at project root. A sample `example.config.yaml` is included in the repository and can be adapted.
 
 Example fields:
 

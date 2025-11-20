@@ -2,4 +2,4 @@
 *.exe
 output/*.json
 output/*/*
-# config.yaml
+config.yaml

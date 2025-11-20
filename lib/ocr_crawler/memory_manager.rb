@@ -4,9 +4,9 @@ require 'fileutils'
 
 module OCRCrawler
   # ::MemoryManager
-  #
-  # Purpose
-  #   Manage the memory freeing files and directories once processed.
+  # Provides helpers to trigger/force Ruby GC and to remove temporary files or
+  # directories. Exposes class-level cleanup utilities and an instance method to
+  # trigger GC periodically based on an internal counter.
   class MemoryManager
     class << self
       def setup_gc

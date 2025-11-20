@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 RSpec.describe OCRCrawler::MemoryManager do
   it 'responds to cleanup' do

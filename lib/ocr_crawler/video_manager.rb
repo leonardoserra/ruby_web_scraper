@@ -3,25 +3,50 @@
 require 'uri'
 
 module OCRCrawler
+  # OCRCrawler::VideoManager
+  # Finds video-related resources using configured selectors and returns result
+  # hashes. Downloading and frame extraction are handled elsewhere (e.g. Downloader / FFmpegHelper).
   class VideoManager
     def initialize(config)
       @config = config
+      @selectors = Array(@config.dig(:selectors, :videos) || ['video'])
+      @frame_rate = @config[:frame_rate] || 1
+      @output_dir = @config[:output_dir]
     end
 
-    def extract(doc, page_url, results)
-      doc.css('video, source').each do |tag|
-        src = tag['src'] || tag['data-src']
-        next unless src
+    # returns array of result hashes
+    def extract(doc, base_url)
+      nodes = @selectors.flat_map { |sel| selector_nodes(doc, sel) }
+      results = nodes.map { |node| process_node(node, base_url) }.compact
+      results.uniq { |r| r[:source] }
+    end
 
-        url = URI.join(page_url, src).to_s rescue next
-        path = Downloader.download(url, 'videos', @config)
-        next unless path
+    private
 
-        frames_dir = FFmpegHelper.extract_frames(path, @config)
-        OCRExecutor.batch_from_frames(frames_dir, page_url, url, results)
-        MemoryManager.cleanup_directory(frames_dir)
-        MemoryManager.cleanup_file(path)
-      end
+    def selector_nodes(doc, sel)
+      doc.css(sel).to_a
+    end
+
+    def process_node(node, base_url)
+      url = extract_url(node)
+      return nil if url.nil? || url.strip.empty?
+
+      normalized = normalize_url(base_url, url)
+      normalized ? build_result(normalized, base_url) : nil
+    end
+
+    def extract_url(node)
+      node['src'] || node['data-src'] || node['content'] || node['href'] || node['poster']
+    end
+
+    def normalize_url(base, url)
+      URI.join(base, url).to_s
+    rescue URI::Error
+      nil
+    end
+
+    def build_result(absolute, base_url)
+      { type: 'video', source: absolute, page: base_url }
     end
   end
 end

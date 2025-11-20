@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# Import all the modules needed.
+# Main library entrypoint. Loads all Crawler components and exposes a simple
+# OCRCrawler.run method as an execution entrypoint.
 require_relative 'ocr_crawler/config'
 require_relative 'ocr_crawler/logger'
 require_relative 'ocr_crawler/memory_manager'
@@ -15,7 +16,9 @@ require_relative 'ocr_crawler/link_manager'
 require_relative 'ocr_crawler/result_recorder'
 require_relative 'ocr_crawler/crawler'
 
-# Entry point to start the execution.
+# OCRCrawler
+# Public API namespace. Call OCRCrawler.run to initialize and execute the
+# crawling pipeline with the loaded configuration.
 module OCRCrawler
   def self.run
     Initializer.setup

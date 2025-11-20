@@ -1,53 +1,52 @@
 # frozen_string_literal: true
 
 require 'uri'
+require 'nokogiri'
 
 module OCRCrawler
-  # ::LinkManager
-  #
-  # Purpose
-  #    Manages the link on the website and visit the
-  #    sub link based on the max_depth
   class LinkManager
-    def initialize(config, queue, visited)
+    # ::LinkManager
+    # Extracts and normalizes links from a Nokogiri document, enqueues unseen
+    # absolute URLs into the shared Queue and tracks visited URLs in a thread-safe way.
+    def initialize(config, queue, visited_set, visited_mutex)
       @config = config
       @queue = queue
-      @visited = visited
-      @mutex = Mutex.new
+      @visited = visited_set
+      @visited_mutex = visited_mutex
     end
 
-    def enqueue_links(doc, base_url, depth)
-      return if depth >= @config[:max_depth]
+    def enqueue_links(doc, base_url, current_depth)
+      return if current_depth.nil?
 
-      doc.css('a[href]').each do |link|
-        href = link['href']
-        next unless href
+      max_depth = @config[:max_depth] || 2
+      return if current_depth >= max_depth
 
-        url = normalize_url(href, base_url)
-        next unless url
-        next if visited?(url)
+      selectors = ['a[href]']
+      selectors.each do |sel|
+        doc.css(sel).each do |node|
+          href = node['href']
+          next unless href
 
-        enqueue(url, depth + 1)
+          begin
+            absolute = URI.join(base_url, href).to_s
+          rescue URI::Error
+            next
+          end
+
+          enqueue_if_new(absolute, current_depth + 1)
+        end
       end
     end
 
     private
 
-    def visited?(url)
-      @mutex.synchronize { @visited.key?(url) }
-    end
+    def enqueue_if_new(url, depth)
+      @visited_mutex.synchronize do
+        return if @visited.include?(url)
 
-    def enqueue(url, depth)
-      @mutex.synchronize do
-        @visited[url] = true
+        @visited.add(url)
         @queue << { url: url, depth: depth }
       end
-    end
-
-    def normalize_url(href, base)
-      URI.join(base, href).to_s
-    rescue StandardError
-      nil
     end
   end
 end

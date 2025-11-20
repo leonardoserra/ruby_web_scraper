@@ -3,11 +3,12 @@
 require 'json'
 require 'fileutils'
 
+# OCRCrawler
+# Top-level namespace for the OCR web crawler components.
 module OCRCrawler
-  # ::ResultRecorder
-  #
-  # Purpose
-  #   Handles the result file creation.
+  # ResultRecorder
+  # Persists discovered resources and OCR results to disk (JSON file).
+  # Provides a small helper builder to create standardized result hashes.
   class ResultRecorder
     def initialize(config)
       @config = config

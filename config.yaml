@@ -1,0 +1,13 @@
+start_urls:
+  - "https://darumabeats404.bandcamp.com/"
+threads: 4
+output_dir: "output"
+frame_rate: 1
+gc_interval: 100
+max_depth: 0
+user_agent: "ruby-ocr-crawler/1.0"
+keep_files: false
+selectors:
+  images:
+    - "a div img"
+  videos:

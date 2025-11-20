@@ -32,7 +32,7 @@ module OCRCrawler
     end
 
     def extract_url(node)
-      node['src'] || node['data-src'] || node['content'] || node['href']
+      node['data-original'] || node['src'] || node['data-src'] || node['content'] || node['href']
     end
 
     def normalize_url(base, url)

@@ -4,6 +4,7 @@
 require 'bundler/setup'
 require 'json'
 require 'pathname'
+require 'fileutils'
 
 require_relative '../lib/ocr_crawler/config'
 require_relative '../lib/ocr_crawler/logger'

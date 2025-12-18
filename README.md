@@ -3,6 +3,22 @@
 A modular, memory-safe Ruby web crawler that discovers images and videos from web pages, downloads media, extracts video frames via FFmpeg, and performs OCR on images/frames using Tesseract (RTesseract). The crawler is selector-driven via a `config.yaml` file so you can target specific HTML tags or attributes.
 
 ---
+## with Docker
+- `docker compose up --build`  
+
+then
+
+- `docker compose run --rm \
+  ocr_crawler \
+  rake "run[https://another-site.com,3]"`  
+
+or
+
+- `docker compose run --rm \
+  ocr_crawler \
+  rake "run[,2,/app/config.yaml]"`
+
+
 
 ## Table of contents
 

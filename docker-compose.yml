@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  ocr_crawler:
+    build: .
+    container_name: ocr-crawler
+    volumes:
+      - ./output:/app/output
+    command: rake "run[https://example.com,2]"

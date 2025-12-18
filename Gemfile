@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-ruby '>= 3.1'
+ruby '>= 3.3.7'
 
 gem 'mini_magick', '~> 4.12'
 gem 'nokogiri', '~> 1.16'

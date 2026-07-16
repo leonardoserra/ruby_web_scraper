@@ -21,3 +21,9 @@ end
 gem 'yard', '~> 0.9', require: false
 
 gem 'glimmer-dsl-libui', '~> 0.13.1'
+
+# Required by glimmer-dsl-libui and rtesseract; removed from default gems in Ruby 3.4+
+gem 'csv'
+gem 'fiddle'
+gem 'logger'
+gem 'ostruct'

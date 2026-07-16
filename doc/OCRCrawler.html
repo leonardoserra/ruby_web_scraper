@@ -79,7 +79,7 @@
   <dl>
     <dt>Defined in:</dt>
     <dd>lib/ocr_crawler.rb<span class="defines">,<br />
-  lib/ocr_crawler/config.rb,<br /> lib/ocr_crawler/logger.rb,<br /> lib/ocr_crawler/crawler.rb,<br /> lib/ocr_crawler/downloader.rb,<br /> lib/ocr_crawler/initializer.rb,<br /> lib/ocr_crawler/link_manager.rb,<br /> lib/ocr_crawler/ocr_executor.rb,<br /> lib/ocr_crawler/ffmpeg_helper.rb,<br /> lib/ocr_crawler/image_manager.rb,<br /> lib/ocr_crawler/video_manager.rb,<br /> lib/ocr_crawler/memory_manager.rb,<br /> lib/ocr_crawler/result_recorder.rb,<br /> lib/ocr_crawler/document_processor.rb</span>
+  lib/ocr_crawler/site.rb,<br /> lib/ocr_crawler/config.rb,<br /> lib/ocr_crawler/logger.rb,<br /> lib/ocr_crawler/crawler.rb,<br /> lib/ocr_crawler/downloader.rb,<br /> lib/ocr_crawler/initializer.rb,<br /> lib/ocr_crawler/link_manager.rb,<br /> lib/ocr_crawler/ocr_executor.rb,<br /> lib/ocr_crawler/ffmpeg_helper.rb,<br /> lib/ocr_crawler/image_manager.rb,<br /> lib/ocr_crawler/media_manager.rb,<br /> lib/ocr_crawler/video_manager.rb,<br /> lib/ocr_crawler/memory_manager.rb,<br /> lib/ocr_crawler/gui/application.rb,<br /> lib/ocr_crawler/result_recorder.rb,<br /> lib/ocr_crawler/document_processor.rb,<br /> lib/ocr_crawler/gui/config_serializer.rb</span>
 </dd>
   </dl>
   
@@ -100,11 +100,11 @@
 <p class="children">
   
     
-      <strong class="modules">Modules:</strong> <span class='object_link'><a href="OCRCrawler/Config.html" title="OCRCrawler::Config (module)">Config</a></span>
+      <strong class="modules">Modules:</strong> <span class='object_link'><a href="OCRCrawler/Config.html" title="OCRCrawler::Config (module)">Config</a></span>, <span class='object_link'><a href="OCRCrawler/GUI.html" title="OCRCrawler::GUI (module)">GUI</a></span>
     
   
     
-      <strong class="classes">Classes:</strong> <span class='object_link'><a href="OCRCrawler/Crawler.html" title="OCRCrawler::Crawler (class)">Crawler</a></span>, <span class='object_link'><a href="OCRCrawler/DocumentProcessor.html" title="OCRCrawler::DocumentProcessor (class)">DocumentProcessor</a></span>, <span class='object_link'><a href="OCRCrawler/Downloader.html" title="OCRCrawler::Downloader (class)">Downloader</a></span>, <span class='object_link'><a href="OCRCrawler/FFmpegHelper.html" title="OCRCrawler::FFmpegHelper (class)">FFmpegHelper</a></span>, <span class='object_link'><a href="OCRCrawler/ImageManager.html" title="OCRCrawler::ImageManager (class)">ImageManager</a></span>, <span class='object_link'><a href="OCRCrawler/Initializer.html" title="OCRCrawler::Initializer (class)">Initializer</a></span>, <span class='object_link'><a href="OCRCrawler/LinkManager.html" title="OCRCrawler::LinkManager (class)">LinkManager</a></span>, <span class='object_link'><a href="OCRCrawler/Logger.html" title="OCRCrawler::Logger (class)">Logger</a></span>, <span class='object_link'><a href="OCRCrawler/MemoryManager.html" title="OCRCrawler::MemoryManager (class)">MemoryManager</a></span>, <span class='object_link'><a href="OCRCrawler/OCRExecutor.html" title="OCRCrawler::OCRExecutor (class)">OCRExecutor</a></span>, <span class='object_link'><a href="OCRCrawler/ResultRecorder.html" title="OCRCrawler::ResultRecorder (class)">ResultRecorder</a></span>, <span class='object_link'><a href="OCRCrawler/VideoManager.html" title="OCRCrawler::VideoManager (class)">VideoManager</a></span>
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="OCRCrawler/Crawler.html" title="OCRCrawler::Crawler (class)">Crawler</a></span>, <span class='object_link'><a href="OCRCrawler/DocumentProcessor.html" title="OCRCrawler::DocumentProcessor (class)">DocumentProcessor</a></span>, <span class='object_link'><a href="OCRCrawler/Downloader.html" title="OCRCrawler::Downloader (class)">Downloader</a></span>, <span class='object_link'><a href="OCRCrawler/FFmpegHelper.html" title="OCRCrawler::FFmpegHelper (class)">FFmpegHelper</a></span>, <span class='object_link'><a href="OCRCrawler/ImageManager.html" title="OCRCrawler::ImageManager (class)">ImageManager</a></span>, <span class='object_link'><a href="OCRCrawler/Initializer.html" title="OCRCrawler::Initializer (class)">Initializer</a></span>, <span class='object_link'><a href="OCRCrawler/LinkManager.html" title="OCRCrawler::LinkManager (class)">LinkManager</a></span>, <span class='object_link'><a href="OCRCrawler/Logger.html" title="OCRCrawler::Logger (class)">Logger</a></span>, <span class='object_link'><a href="OCRCrawler/MediaManager.html" title="OCRCrawler::MediaManager (class)">MediaManager</a></span>, <span class='object_link'><a href="OCRCrawler/MemoryManager.html" title="OCRCrawler::MemoryManager (class)">MemoryManager</a></span>, <span class='object_link'><a href="OCRCrawler/OCRExecutor.html" title="OCRCrawler::OCRExecutor (class)">OCRExecutor</a></span>, <span class='object_link'><a href="OCRCrawler/ResultRecorder.html" title="OCRCrawler::ResultRecorder (class)">ResultRecorder</a></span>, <span class='object_link'><a href="OCRCrawler/Site.html" title="OCRCrawler::Site (class)">Site</a></span>, <span class='object_link'><a href="OCRCrawler/VideoManager.html" title="OCRCrawler::VideoManager (class)">VideoManager</a></span>
     
   
 </p>
@@ -169,14 +169,14 @@
       <pre class="lines">
 
 
-23
-24
 25
 26
-27</pre>
+27
+28
+29</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/ocr_crawler.rb', line 23</span>
+      <pre class="code"><span class="info file"># File 'lib/ocr_crawler.rb', line 25</span>
 
 <span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_run'>run</span>
   <span class='const'><span class='object_link'><a href="OCRCrawler/Initializer.html" title="OCRCrawler::Initializer (class)">Initializer</a></span></span><span class='period'>.</span><span class='id identifier rubyid_setup'><span class='object_link'><a href="OCRCrawler/Initializer.html#setup-class_method" title="OCRCrawler::Initializer.setup (method)">setup</a></span></span>
@@ -193,7 +193,7 @@
 </div>
 
       <div id="footer">
-  Generated on Thu Jul 16 12:13:16 2026 by
+  Generated on Fri Jul 17 00:49:18 2026 by
   <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.38 (ruby-3.4.8).
 </div>

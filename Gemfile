@@ -14,6 +14,7 @@ group :development, :test do
   gem 'rspec', '~> 3.12'
   gem 'rubocop', require: false
   gem 'rubocop-performance', require: false
+  gem 'solargraph', require: false
   gem 'vcr', '~> 6.3'
   gem 'webmock', '~> 3.20'
 end

@@ -18,10 +18,10 @@ RSpec.configure do |config|
   end
 
   config.before(:suite) do
-    OCRCrawler::Config.instance_variable_set(:@config, nil)
+    OCRCrawler::Config.reset_cache!
   end
 
   config.after(:each) do
-    OCRCrawler::Config.instance_variable_set(:@config, nil)
+    OCRCrawler::Config.reset_cache!
   end
 end

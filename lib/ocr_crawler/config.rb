@@ -1,43 +1,64 @@
 # frozen_string_literal: true
 
-require 'yaml'
+require 'json'
+require_relative 'site'
 
 module OCRCrawler
-  # OCRCrawler::Config
-  # Responsible for loading and providing configuration values for the crawler.
-  # Loads defaults and merges them with a YAML configuration file. Exposes a
-  # simple programmatic API (Config.load) returning a Hash of symbolized keys.
+  # Loads and caches config.json with symbolized keys and Site objects.
   module Config
+    CONFIG_FILE = 'config.json'
+
     class << self
-      def load(path = File.join(Dir.pwd, 'config.yaml'))
+      def load(path = File.join(Dir.pwd, CONFIG_FILE))
         return @config if defined?(@config) && @config
 
-        raw = File.exist?(path) ? YAML.safe_load_file(path) || {} : {}
-        @config = defaults.merge(symbolize_keys(raw))
+        raw = if File.exist?(path)
+                content = File.read(path)
+                content.strip.empty? ? {} : JSON.parse(content)
+              else
+                {}
+              end
+        symbolized = symbolize_keys(raw)
+        @config = defaults.merge(symbolized) do |_key, default, value|
+          value.is_a?(Hash) ? default.merge(value) : value
+        end
+        @config[:sites] = build_sites(@config)
+        @config[:start_urls] = @config[:sites].map(&:url)
+        @config
+      end
+
+      def reset_cache!
+        @config = nil
       end
 
       private
 
       def defaults
-        base_defaults.merge(feature_flags).merge(selector_defaults)
-      end
-
-      def base_defaults
         {
-          start_urls: ['https://example.com'],
           threads: 4,
           output_dir: File.join(Dir.pwd, 'output'),
           frame_rate: 1,
-          gc_interval: 100
+          gc_interval: 100,
+          keep_files: false,
+          user_agent: 'ruby-ocr-crawler/1.0',
+          sites: []
         }
       end
 
-      def selector_defaults
-        { selectors: { images: ['img'], videos: ['video'] } }
-      end
+      def build_sites(cfg)
+        sites_data = cfg[:sites] || []
+        return sites_data.map { |s| Site.new(**s) } unless sites_data.empty?
 
-      def feature_flags
-        { keep_files: false }
+        if cfg[:start_urls]
+          global_media = cfg.dig(:selectors, :images).to_a | cfg.dig(:selectors, :videos).to_a
+          global_media = %w[img video] if global_media.empty?
+          global_links = cfg.dig(:selectors, :links) || ['a[href]']
+          cfg[:start_urls].map do |url|
+            Site.new(url: url, media_selectors: global_media, link_selectors: global_links)
+          end
+        else
+          [Site.new(url: 'https://example.com')]
+        end
       end
 
       def symbolize_keys(obj)

@@ -6,6 +6,7 @@ require 'json'
 require 'pathname'
 require 'fileutils'
 
+require_relative '../lib/ocr_crawler/site'
 require_relative '../lib/ocr_crawler/config'
 require_relative '../lib/ocr_crawler/logger'
 require_relative '../lib/ocr_crawler/memory_manager'
@@ -22,18 +23,18 @@ require_relative '../lib/ocr_crawler/crawler'
 
 # Usage:
 #   ruby bin/run.rb [config_or_url] [max_depth]
-# If first arg is a URL it overrides config start_urls; otherwise it is treated as config.yaml path.
+# If first arg is a URL it overrides config sites; otherwise it is treated as config.json path.
 
 arg1 = ARGV[0]
 arg2 = ARGV[1]
 
 # Determine config
 if arg1 && arg1 =~ %r{\Ahttps?://}
-  # load default config then override start_urls
   cfg = OCRCrawler::Config.load
   cfg[:start_urls] = [arg1]
+  cfg[:sites] = [OCRCrawler::Site.new(url: arg1)]
 else
-  cfg_path = arg1 || File.join(Dir.pwd, 'config.yaml')
+  cfg_path = arg1 || File.join(Dir.pwd, 'config.json')
   cfg = OCRCrawler::Config.load(cfg_path)
 end
 

@@ -19,3 +19,5 @@ group :development, :test do
 end
 
 gem 'yard', '~> 0.9', require: false
+
+gem 'glimmer-dsl-libui', '~> 0.13.1'

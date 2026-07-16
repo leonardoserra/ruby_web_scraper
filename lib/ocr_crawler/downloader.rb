@@ -3,6 +3,7 @@
 require 'net/http'
 require 'uri'
 require 'fileutils'
+require 'securerandom'
 
 # OCRCrawler
 # Top-level namespace for the OCR web crawler components.
@@ -35,7 +36,7 @@ module OCRCrawler
     private_class_method def self.safe_filename(uri)
       base = File.basename(uri.path)
       base = 'resource' if base.nil? || base.empty?
-      "#{Time.now.to_i}_#{base}".gsub(/[^\w.-]/, '_')
+      "#{SecureRandom.hex(8)}_#{base}".gsub(/[^\w.-]/, '_')
     end
 
     private_class_method def self.build_request(uri, config)

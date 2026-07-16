@@ -10,8 +10,6 @@ module OCRCrawler
     def initialize(config)
       @config = config
       @selectors = Array(@config.dig(:selectors, :videos) || ['video'])
-      @frame_rate = @config[:frame_rate] || 1
-      @output_dir = @config[:output_dir]
     end
 
     # returns array of result hashes
@@ -52,7 +50,7 @@ module OCRCrawler
     end
 
     def build_result(absolute, base_url)
-      { type: :video, source: absolute, page: base_url }
+      { type: :video, url: absolute, source_page: base_url }
     end
   end
 end

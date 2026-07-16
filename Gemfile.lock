@@ -17,6 +17,8 @@ GEM
     mini_magick (4.13.2)
     nokogiri (1.18.10-x64-mingw-ucrt)
       racc (~> 1.4)
+    nokogiri (1.18.10-x86_64-linux-gnu)
+      racc (~> 1.4)
     parallel (1.27.0)
     parser (3.3.10.0)
       ast (~> 2.4.1)
@@ -25,6 +27,7 @@ GEM
     public_suffix (7.0.0)
     racc (1.8.1)
     rainbow (3.1.1)
+    rake (13.4.2)
     regexp_parser (2.11.3)
     rexml (3.4.4)
     rspec (3.13.2)
@@ -73,10 +76,12 @@ GEM
 
 PLATFORMS
   x64-mingw-ucrt
+  x86_64-linux
 
 DEPENDENCIES
   mini_magick (~> 4.12)
   nokogiri (~> 1.16)
+  rake (~> 13.0)
   rspec (~> 3.12)
   rtesseract (~> 3.1)
   rubocop

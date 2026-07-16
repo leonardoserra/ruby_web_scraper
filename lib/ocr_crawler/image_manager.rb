@@ -48,7 +48,7 @@ module OCRCrawler
     end
 
     def build_result(absolute, base_url)
-      { type: :image, source: absolute, page: base_url }
+      { type: :image, url: absolute, source_page: base_url }
     end
   end
 end

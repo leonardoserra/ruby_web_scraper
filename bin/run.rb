@@ -53,9 +53,9 @@ processed = []
 if File.exist?(results_file)
   discovered = JSON.parse(File.read(results_file))
   discovered.each do |entry|
-    type = (entry['type'] || entry[:type]).to_s
-    page = entry['source_page'] || entry['page'] || entry['page_url'] || nil
-    src = entry['url'] || entry['source'] || entry['src'] || nil
+    type = entry['type'].to_s
+    page = entry['source_page']
+    src = entry['url']
     next unless src
 
     case type

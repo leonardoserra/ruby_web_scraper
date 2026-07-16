@@ -83,7 +83,7 @@ module OCRCrawler
     end
 
     def fetch_document(url)
-      DocumentProcessor.fetch(url)
+      DocumentProcessor.fetch(url, @config)
     rescue StandardError => e
       Logger.warn("Failed to fetch #{url}: #{e.class}: #{e.message}")
       nil

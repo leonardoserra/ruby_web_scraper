@@ -1,0 +1,52 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://example.com/
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - test-agent/1.0
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Thu, 16 Jul 2026 10:12:24 GMT
+      Content-Type:
+      - text/html
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Server:
+      - cloudflare
+      Last-Modified:
+      - Wed, 15 Jul 2026 18:48:48 GMT
+      Allow:
+      - GET, HEAD
+      Age:
+      - '8297'
+      Cf-Cache-Status:
+      - HIT
+      Cf-Ray:
+      - a1c03a723fd6bac4-MXP
+    body:
+      encoding: ASCII-8BIT
+      string: '<!doctype html><html lang="en"><head><title>Example Domain</title><link
+        rel="icon" href="data:,"><meta name="viewport" content="width=device-width,
+        initial-scale=1"><style>body{background:#eee;width:60vw;margin:15vh auto;font-family:system-ui,sans-serif}h1{font-size:1.5em}div{opacity:0.8}a:link,a:visited{color:#348}</style></head><body><div><h1>Example
+        Domain</h1><p>This domain is for use in documentation examples without needing
+        permission. Avoid use in operations.</p><p><a href="https://iana.org/domains/example">Learn
+        more</a></p></div></body></html>
+
+        '
+  recorded_at: Thu, 16 Jul 2026 10:12:25 GMT
+recorded_with: VCR 6.3.1

@@ -16,7 +16,7 @@ module OCRCrawler
     def extract(doc, base_url)
       nodes = @selectors.flat_map { |sel| selector_nodes(doc, sel) }
       results = nodes.map { |node| process_node(node, base_url) }.compact
-      results.uniq { |r| r[:source] }
+      results.uniq { |r| r[:url] }
     end
 
     private

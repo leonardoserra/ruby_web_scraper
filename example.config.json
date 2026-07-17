@@ -12,5 +12,7 @@
   "frame_rate": 1,
   "gc_interval": 100,
   "keep_files": false,
-  "user_agent": "ruby-ocr-crawler/1.0"
+  "user_agent": "ruby-ocr-crawler/1.0",
+  "proxy": "http://user:password@proxy.example.com:3128",
+  "tor_circuit_interval": 0
 }

@@ -15,15 +15,15 @@ module OCRCrawler
       @visited_mutex = visited_mutex
     end
 
-    def enqueue_links(doc, base_url, current_depth, link_selectors: nil, site_max_depth: nil)
-      effective_max_depth = site_max_depth || @config[:max_depth] || 2
+    def enqueue_links(doc, base_url, current_depth, site_opts: {}, extra: {})
+      effective_max_depth = site_opts[:max_depth] || @config[:max_depth] || 2
       return if current_depth.nil? || current_depth >= effective_max_depth
 
-      link_nodes(doc, link_selectors).each do |node|
+      link_nodes(doc, site_opts[:link_selectors]).each do |node|
         next unless (href = node['href'])
 
         if (absolute = resolve_href(base_url, href))
-          enqueue_if_new(absolute, current_depth + 1)
+          enqueue_if_new(absolute, current_depth + 1, extra)
         end
       end
     end
@@ -44,12 +44,12 @@ module OCRCrawler
       nil
     end
 
-    def enqueue_if_new(url, depth)
+    def enqueue_if_new(url, depth, extra = {})
       @visited_mutex.synchronize do
         return if @visited.include?(url)
 
         @visited.add(url)
-        @queue << { url: url, depth: depth }
+        @queue << { url: url, depth: depth, **extra }
       end
     end
   end

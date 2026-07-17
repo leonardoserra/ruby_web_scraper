@@ -15,8 +15,7 @@ require_relative '../lib/ocr_crawler/document_processor'
 require_relative '../lib/ocr_crawler/downloader'
 require_relative '../lib/ocr_crawler/ffmpeg_helper'
 require_relative '../lib/ocr_crawler/ocr_executor'
-require_relative '../lib/ocr_crawler/image_manager'
-require_relative '../lib/ocr_crawler/video_manager'
+require_relative '../lib/ocr_crawler/media_manager'
 require_relative '../lib/ocr_crawler/link_manager'
 require_relative '../lib/ocr_crawler/result_recorder'
 require_relative '../lib/ocr_crawler/crawler'
@@ -32,7 +31,11 @@ arg2 = ARGV[1]
 if arg1 && arg1 =~ %r{\Ahttps?://}
   cfg = OCRCrawler::Config.load
   cfg[:start_urls] = [arg1]
-  cfg[:sites] = [OCRCrawler::Site.new(url: arg1)]
+  cfg[:sites] = [OCRCrawler::Site.new(
+    url: arg1,
+    media_selectors: cfg.dig(:selectors, :images).to_a | cfg.dig(:selectors, :videos).to_a | %w[img video],
+    link_selectors: cfg.dig(:selectors, :links) || ['a[href]']
+  )]
 else
   cfg_path = arg1 || File.join(Dir.pwd, 'config.json')
   cfg = OCRCrawler::Config.load(cfg_path)
@@ -60,7 +63,7 @@ if File.exist?(results_file)
     next unless src
 
     case type
-    when 'image', 'img'
+    when 'media', 'image', 'img'
       local = OCRCrawler::Downloader.download(src, 'images', cfg)
       text = ''
       text = OCRCrawler::OCRExecutor.perform(local) if local && File.exist?(local)

@@ -4,6 +4,7 @@ require 'net/http'
 require 'uri'
 require 'fileutils'
 require 'securerandom'
+require_relative 'http_client'
 
 # OCRCrawler
 # Top-level namespace for the OCR web crawler components.
@@ -20,7 +21,7 @@ module OCRCrawler
       local_path = prepare_path(uri, subfolder, config)
       Logger.info("Downloading #{url} → #{local_path}")
       request = build_request(uri, config)
-      perform_request(uri, local_path, request)
+      perform_request(uri, local_path, request, config)
     rescue StandardError => e
       Logger.warn("Error downloading #{url}: #{e.message}")
       nil
@@ -45,8 +46,11 @@ module OCRCrawler
       end
     end
 
-    private_class_method def self.perform_request(uri, local_path, request)
-      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+    private_class_method def self.perform_request(uri, local_path, request, config)
+      http_class = HTTPClient.http_class_for(config)
+      http_class.start(uri.host, uri.port, use_ssl: uri.scheme == 'https') do |http|
+        http.open_timeout = 5
+        http.read_timeout = 10
         http.request(request) do |response|
           return warn_and_nil(uri, response) unless response.is_a?(Net::HTTPSuccess)
 

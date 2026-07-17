@@ -5,7 +5,7 @@ AllCops:
     - 'doc/**/*'
     - '.yardoc/**/*'
 
-Style/EndOfLine:
+Layout/EndOfLine:
   EnforcedStyle: lf
 
 Layout/LineLength:

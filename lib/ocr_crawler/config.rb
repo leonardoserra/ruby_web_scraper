@@ -41,6 +41,8 @@ module OCRCrawler
           gc_interval: 100,
           keep_files: false,
           user_agent: 'ruby-ocr-crawler/1.0',
+          proxy: nil,
+          tor_circuit_interval: 0,
           sites: []
         }
       end

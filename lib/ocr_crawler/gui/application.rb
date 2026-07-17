@@ -4,6 +4,7 @@ require 'glimmer-dsl-libui'
 require 'json'
 require 'open3'
 
+require_relative '../http_client'
 require_relative '../site'
 require_relative '../config'
 require_relative '../crawler'
@@ -104,8 +105,7 @@ module OCRCrawler
               button('Save Config') do
                 on_clicked { save_config }
               end
-              button(@run_button_text = 'Run Crawler') do
-                @run_button = self
+              @run_button = button(@run_button_text = 'Run Crawler') do
                 on_clicked { run_crawler }
               end
             end
@@ -157,17 +157,13 @@ module OCRCrawler
           resizable true
 
           vertical_box do
-            entry do
-              label 'URL'
-              @form_url = entry
-              @form_url.text = form_data[:url]
-            end
+            label('URL')
+            @form_url = entry
+            @form_url.text = form_data[:url]
 
-            entry do
-              label 'Max Depth'
-              @form_depth = entry
-              @form_depth.text = form_data[:max_depth]
-            end
+            label('Max Depth')
+            @form_depth = entry
+            @form_depth.text = form_data[:max_depth]
 
             group('Media CSS Selectors (one per line)') do
               @form_media = multiline_entry
@@ -184,30 +180,7 @@ module OCRCrawler
                 on_clicked { dialog.destroy }
               end
               button('Save') do
-                on_clicked do
-                  url = @form_url.text.strip
-                  if url.empty?
-                    msg_box_error(dialog, 'Validation Error', 'URL cannot be empty.')
-                    next
-                  end
-
-                  site_obj = Site.new(
-                    url: url,
-                    max_depth: @form_depth.text.strip.to_i,
-                    media_selectors: @form_media.text.strip.lines.map(&:strip).reject(&:empty?),
-                    link_selectors: @form_links.text.strip.lines.map(&:strip).reject(&:empty?)
-                  )
-
-                  if edit_mode
-                    idx = @data[:sites].index { |s| s.url == site.url }
-                    @data[:sites][idx] = site_obj if idx
-                  else
-                    @data[:sites] << site_obj
-                  end
-
-                  refresh_sites_table
-                  dialog.destroy
-                end
+                on_clicked { save_site_form(dialog, edit_mode, form_data[:url]) }
               end
             end
           end
@@ -269,7 +242,7 @@ module OCRCrawler
           append_output("Error: #{e.message}\n#{e.backtrace.first(3).join("\n")}\n")
         ensure
           @running = false
-          Glimmer::LibUI::UI.invoke_later { @run_button.enabled = true }
+          Glimmer::LibUI.queue_main { @run_button.enabled = true }
         end
       end
 
@@ -311,9 +284,34 @@ module OCRCrawler
         append_output("Processed results written to #{out_file}\n")
       end
 
+      def save_site_form(dialog, edit_mode, original_url)
+        url = @form_url.text.strip
+        if url.empty?
+          msg_box_error(dialog, 'Validation Error', 'URL cannot be empty.')
+          return
+        end
+
+        site_obj = Site.new(
+          url: url,
+          max_depth: @form_depth.text.strip.to_i,
+          media_selectors: @form_media.text.strip.lines.map(&:strip).reject(&:empty?),
+          link_selectors: @form_links.text.strip.lines.map(&:strip).reject(&:empty?)
+        )
+
+        if edit_mode
+          idx = @data[:sites].index { |s| s.url == original_url }
+          @data[:sites][idx] = site_obj if idx
+        else
+          @data[:sites] << site_obj
+        end
+
+        refresh_sites_table
+        dialog.destroy
+      end
+
       def append_output(text)
         @output_text += text
-        Glimmer::LibUI::UI.invoke_later do
+        Glimmer::LibUI.queue_main do
           @output_log.text = @output_text
         end
       end

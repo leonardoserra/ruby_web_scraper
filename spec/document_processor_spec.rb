@@ -22,11 +22,13 @@ RSpec.describe OCRCrawler::DocumentProcessor do
 
     it 'passes User-Agent from config when provided' do
       config = { user_agent: 'test-agent/1.0' }
-      uri_double = instance_double(URI::HTTP)
-      expect(URI).to receive(:parse).with('https://example.com').and_return(uri_double)
-      expect(uri_double).to receive(:read).with('User-Agent' => 'test-agent/1.0')
-                                          .and_return('<html><body></body></html>')
-      described_class.fetch('https://example.com', config)
+      response = instance_double(Net::HTTPSuccess, body: '<html><body></body></html>', is_a?: true)
+      allow(response).to receive(:is_a?).with(Net::HTTPSuccess).and_return(true)
+      expect(OCRCrawler::HTTPClient).to receive(:fetch)
+        .with('https://example.com', config)
+        .and_return(response)
+      result = described_class.fetch('https://example.com', config)
+      expect(result).to be_a(Nokogiri::HTML::Document)
     end
   end
 end

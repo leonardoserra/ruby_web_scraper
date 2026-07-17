@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 require 'set'
+require_relative 'media_manager'
+require_relative 'link_manager'
+require_relative 'memory_manager'
+require_relative 'document_processor'
+require_relative 'result_recorder'
 
 module OCRCrawler
   # Orchestrates the crawl: thread pool, per-site selectors, media/link extraction.
@@ -76,19 +81,16 @@ module OCRCrawler
     end
 
     def process_page(job)
-      url = job[:url]
-      depth = job[:depth]
-      media_selectors = job[:media_selectors]
-      link_selectors = job[:link_selectors]
-      site_max_depth = job[:max_depth]
-
-      Logger.info("Processing #{url} (depth #{depth})")
-      doc = fetch_document(url)
+      Logger.info("Processing #{job[:url]} (depth #{job[:depth]})")
+      doc = fetch_document(job[:url])
       return unless doc
 
-      results = extract_media(doc, url, media_selectors)
+      results = extract_media(doc, job[:url], job[:media_selectors])
       merge_results(results)
-      enqueue_links_from(doc, url, depth, link_selectors, site_max_depth)
+      enqueue_links_from(doc, job[:url], job[:depth],
+                         max_depth: job[:max_depth],
+                         media_selectors: job[:media_selectors],
+                         link_selectors: job[:link_selectors])
     ensure
       doc&.remove
     end
@@ -110,10 +112,11 @@ module OCRCrawler
       end
     end
 
-    def enqueue_links_from(doc, url, depth, link_selectors, site_max_depth)
+    def enqueue_links_from(doc, url, depth, **extra)
       @link_manager.enqueue_links(doc, url, depth,
-                                  link_selectors: link_selectors,
-                                  site_max_depth: site_max_depth)
+                                  site_opts: { link_selectors: extra[:link_selectors],
+                                               max_depth: extra[:max_depth] },
+                                  extra: extra)
     end
 
     def safe_dequeue

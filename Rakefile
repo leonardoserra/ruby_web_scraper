@@ -43,7 +43,7 @@ desc 'Run the OCR Web Crawler'
 task :run, [:url, :max_depth, :config] do |_, args|
   url = args[:url]
   max_depth = args[:max_depth]
-  config_path = args[:config] || File.join(Dir.pwd, 'config.yaml')
+  config_path = args[:config] || File.join(Dir.pwd, 'config.json')
 
   cmd_parts = []
   cmd_parts << 'ruby bin/run.rb'

@@ -1,254 +1,277 @@
 # Ruby OCR Crawler
 
-A modular, memory-safe Ruby web crawler that discovers images and videos from web pages, downloads media, extracts video frames via FFmpeg, and performs OCR on images/frames using Tesseract (RTesseract). The crawler is selector-driven via per-site `config.json` configuration so you can target specific HTML tags or attributes per domain.
+A modular, memory-safe Ruby web crawler that discovers images and videos from web pages, downloads media, extracts video frames via FFmpeg, and performs OCR on images/frames using Tesseract. Selector-driven via per-site `config.json` — target specific HTML tags or attributes per domain.
 
 ---
-## Docker (CLI)
+
+## Table of contents
+
+- Requirements
+- Install
+- Setup (`config.json`)
+- Running the crawler
+- Docker
+- Tor IP rotation
+- Output layout
+- Testing & linting
+- Architecture
+- Troubleshooting
+- License
+
+---
+
+## Requirements
+
+- Ruby 3.1+ (tested on 3.4.8)
+- Bundler
+- Tesseract OCR (`tesseract` on PATH) — required for OCR
+- FFmpeg (`ffmpeg` on PATH) — required for video frame extraction
+- Optional: Docker + Docker Compose for containerized runs with Tor
+
+---
+
+## Install
+
+```bash
+git clone <repo-url> && cd ruby_web_scraper
+bundle install
+```
+
+System packages (select your platform):
+
+| Platform | Command |
+|---|---|
+| macOS (Homebrew) | `brew install tesseract ffmpeg` |
+| Debian / Ubuntu | `sudo apt install -y tesseract-ocr ffmpeg` |
+| Fedora / RHEL | `sudo dnf install -y tesseract ffmpeg` |
+| Windows | `winget install --id=Gyan.FFmpeg` (Tesseract: manual PATH setup) |
+
+Verify:
+```bash
+tesseract --version && ffmpeg -version
+```
+
+---
+
+## Setup (`config.json`)
+
+Copy `example.config.json` to `config.json` and adapt. The config uses a per-site model:
+
+```json
+{
+  "sites": [
+    {
+      "url": "https://example.com",
+      "max_depth": 2,
+      "media_selectors": ["img", "video", "a.popupImage[href]"],
+      "link_selectors": ["a[href]", ".collection-title-details a[href]"]
+    }
+  ],
+  "threads": 4,
+  "output_dir": "output",
+  "frame_rate": 1,
+  "gc_interval": 100,
+  "keep_files": false,
+  "user_agent": "ruby-ocr-crawler/1.0",
+  "proxy": null,
+  "tor_circuit_interval": 0
+}
+```
+
+### Per-site fields
+
+| Field | Description |
+|---|---|
+| `url` | Start URL for this site |
+| `max_depth` | Maximum crawl depth (0 = seed page only) |
+| `media_selectors` | CSS selectors to find media elements (extracts from `src`, `data-src`, `data-original`, `href`, `poster`, `content`) |
+| `link_selectors` | CSS selectors to find links to follow (defaults to `a[href]`) |
+
+### Global fields
+
+| Field | Default | Description |
+|---|---|---|
+| `threads` | `4` | Number of worker threads |
+| `output_dir` | `./output` | Output directory for results and downloads |
+| `frame_rate` | `1` | FFmpeg frame extraction rate (fps) |
+| `gc_interval` | `100` | Trigger GC every N pages |
+| `keep_files` | `false` | Keep downloaded files after OCR |
+| `user_agent` | `ruby-ocr-crawler/1.0` | HTTP User-Agent header |
+| `proxy` | `null` | HTTP proxy URL (auto-detects Privoxy at `127.0.0.1:8118`) |
+| `tor_circuit_interval` | `0` | Rotate Tor circuit every N requests (0 = disabled) |
+
+---
+
+## Running the crawler
+
+### Desktop GUI
+
+```bash
+ruby bin/gui.rb
+```
+
+A Glimmer DSL for LibUI window to manage sites, edit selectors, and run crawls interactively.
+
+### Docker GUI (cross-platform)
+
+```bash
+ruby bin/docker-gui.rb
+```
+
+Detects Linux (X11), macOS (XQuartz + socat), or Windows (WSLg/VcXsrv) and launches the GUI inside a Docker container with Tor + Privoxy.
+
+### CLI (Rake)
+
+```bash
+bundle exec rake "run[https://example.com,2]"
+```
+
+Arguments: URL (overrides config), max_depth. Uses `config.json` by default.
+
+### CLI (direct)
+
+```bash
+ruby bin/run.rb                    # uses config.json
+ruby bin/run.rb config.json        # explicit config path
+ruby bin/run.rb https://example.com 2  # URL + max_depth override
+```
+
+### Docker CLI
 
 ```bash
 docker compose up --build
 docker compose run --rm ocr_crawler rake "run[https://example.com,2]"
 ```
 
-## Docker GUI (cross-platform)
+---
+
+## Docker
+
+The Docker image (`ruby:3.4.8-trixie`) bundles:
+- Tesseract OCR
+- FFmpeg
+- Tor + Privoxy
+- GTK3 (for GUI mode)
+
+Build and run:
 
 ```bash
-ruby bin/docker-gui.rb
+docker compose up --build
+docker compose run --rm ocr_crawler rake "run[https://example.com,2]"
 ```
 
-Detects Linux (X11), macOS (XQuartz + socat), or Windows (WSLg/VcXsrv) and launches the desktop GUI via Docker with automatic Tor + Privoxy proxy.
+The entry point (`docker-entrypoint.sh`) starts Tor and Privoxy in the background before running the CMD. Output files mount from `./output` on the host.
+
+---
 
 ## Tor IP rotation
 
-The Docker container auto-starts Tor and Privoxy. Set `tor_circuit_interval: 3` in `config.json` to rotate Tor circuit every 3 requests. `HTTPClient` auto-detects Privoxy at `127.0.0.1:8118`.
+The container auto-starts Tor (SOCKS5 on `:9050`) and Privoxy (HTTP proxy on `:8118`). `HTTPClient` auto-detects Privoxy at `127.0.0.1:8118`.
 
-
-
-## Table of contents
-
-- Overview
-- Requirements
-- Install (macOS / Linux / Windows)
-- Setup (project)
-- Configuration (`config.json`)
-- Running the crawler
-- Example end-to-end run (download + frames + OCR)
-- Output layout
-- Testing & linting
-- Troubleshooting
-- Extending / Notes
-- License
-
----
-
-## Overview
-
-This project performs a crawl starting from one or more start URLs, finds images and videos using configurable CSS selectors, records discovered items, downloads media, extracts frames using FFmpeg, and runs Tesseract OCR on images/frames. It is designed for long-running crawls: it uses threads, mutexes, and a MemoryManager to periodically trigger GC.
-
----
-
-## Requirements
-
-- Ruby 3.1 or newer
-- Bundler
-- Tesseract (system binary available in PATH) - required for OCR
-- FFmpeg (system binary available in PATH) - required for video frame extraction
-- Optional: Homebrew (macOS), apt (Debian/Ubuntu), dnf/yum (Fedora/CentOS), winget/choco (Windows) to install system packages
-
----
-
-## Install
-
-General (applies to all platforms):
-
-1. Clone the repository:
-   ```bash
-   git clone <repo-url> && cd ruby_web_scraper
-   ```
-
-2. Install gems:
-   ```bash
-   bundle install
-   ```
-
-Platform-specific system package install:
-
-- macOS (Homebrew)
-  ```bash
-  # install Homebrew if needed: https://brew.sh/
-  brew install tesseract ffmpeg
-  ```
-
-- Debian / Ubuntu
-  ```bash
-  sudo apt update
-  sudo apt install -y ruby-full build-essential tesseract-ocr ffmpeg
-  ```
-
-- Fedora / RHEL / CentOS
-  ```bash
-  sudo dnf install -y ruby rubygems tesseract ffmpeg
-  ```
-
-- Windows (PowerShell) - using winget (Windows 10/11)
-  ```powershell
-  winget install --id=Gyan.FFmpeg
-  # For Tesseract use an available package or installer; ensure tesseract.exe is on PATH.
-  ```
-
-Verify installation:
-```bash
-tesseract --version
-ffmpeg -version
-```
-
----
-
-## Setup (project)
-
-1. Ensure dependencies installed (see above).
-2. Create or edit `config.json` at project root. A sample `example.config.json` is included in the repository and can be adapted.
-
-Example fields:
-
-- `sites`: array of per-site configurations, each with:
-  - `url`: start URL
-  - `max_depth`: maximum crawl depth for this site
-  - `media_selectors`: CSS selectors to find media (images/videos)
-  - `link_selectors`: CSS selectors to find links to follow
-- `threads`: number of worker threads.
-- `output_dir`: where downloaded media, frames and results are stored.
-- `frame_rate`: fps used by FFmpeg when extracting frames from video.
-- `gc_interval`: how many pages processed per GC trigger (MemoryManager).
-- `keep_files`: true | false, choose if the files analysed are saved on disk or deleted.
-- `user_agent`: optional HTTP User-Agent header used by downloads.
-- `proxy`: optional HTTP proxy URL (auto-detects Privoxy at `127.0.0.1:8118`).
-- `tor_circuit_interval`: rotate Tor circuit every N requests (requires Tor running).
-
----
-
-## Running the crawler
-
-There are two primary ways:
-
-1. Rake task:
-   ```bash
-   # Run crawler; provide optional start URL and max depth:
-   rake "run[https://example.com,2]"
-   ```
-   The `run` task accepts optional arguments: first is a start URL (overrides config), second is `max_depth`.
-
-2. Direct script:
-   ```bash
-    ruby bin/run.rb path/to/config.json
-   ```
-   Or provide a URL and optional max depth directly:
-   ```bash
-   ruby bin/run.rb https://example.com 2
-   ```
-
-The script loads `config.json` (or merges CLI-provided URL), initializes the environment, runs the crawler to discover media, then downloads media, extracts frames for videos, runs OCR on images/frames, and writes processed results.
-
----
-
-## Example end-to-end run (download + frames + OCR)
-
-1. Ensure `config.json` is properly configured.
-2. Run:
-   ```bash
-   ruby bin/run.rb config.json
-   ```
-   Or:
-   ```bash
-   ruby bin/run.rb https://example.com 2
-   ```
-
-After the run completes:
-- Initial discovered resources are saved to `output/results.json`.
-- Downloaded media and OCR outputs are saved and a final processed results file is written to `output/processed_results.json`.
+Set `tor_circuit_interval: 3` in `config.json` to rotate the Tor circuit every 3 HTTP requests. `TorManager` connects to the Tor control port (`:9051`) via cookie authentication and sends `SIGNAL NEWNYM`.
 
 ---
 
 ## Output layout
 
-By default `output/` (or your configured `output_dir`) contains:
+```
+output/
+├── images/              # downloaded images
+├── videos/              # downloaded video files
+├── video_frames/        # FFmpeg-extracted frames (per video subdirectory)
+├── results.json         # discovered resources (pre-processing)
+└── processed_results.json  # after download + OCR
+```
 
-- `output/images/` - downloaded images
-- `output/videos/` - downloaded video files
-- `output/video_frames/` - extracted frames for videos (organized per-video)
-- `output/results.json` - JSON file of discovered resources (pre-processing)
-- `output/processed_results.json` - JSON file including download paths and OCR text
+Result entry format:
 
-`results.json` entries follow the format produced by `ResultRecorder.build`:
 ```json
 {
   "source_page": "https://example.com",
   "type": "image",
-  "url": "https://example.com/assets/img.jpg",
-  "path": null,
-  "text": null
+  "url": "https://example.com/img.jpg",
+  "path": "output/images/abc123_img.jpg",
+  "text": "OCR text content"
 }
 ```
-After processing, `processed_results.json` will have `path` filled with local file paths and `text` with OCR output.
+
+- `results.json` — `path` and `text` are `null` (crawl only)
+- `processed_results.json` — `path` and `text` filled by `bin/run.rb` or the GUI
 
 ---
 
-## Testing & Linting
+## Testing & linting
 
-- Run tests (RSpec):
-  ```bash
-  bundle exec rspec
-  # or via rake
-  rake spec
-  ```
+```bash
+bundle exec rspec          # 60 examples, --format documentation
+bundle exec rubocop        # 37 files, 0 offenses (120-char, LF)
+rake default               # lint → spec (order matters)
+```
 
-- Lint with RuboCop:
-  ```bash
-  bundle exec rubocop
-  # or via rake
-  rake lint
-  ```
+VCR cassettes in `spec/fixtures/vcr_cassettes/`. Network error tests use `nonexistent.invalid` (RFC 2606). Config cache is reset between examples.
+
+---
+
+## Architecture
+
+```
+bin/
+├── gui.rb               # desktop GUI launcher (Glimmer DSL for LibUI)
+├── docker-gui.rb         # cross-platform Docker GUI launcher
+├── run.rb                # CLI entry: crawl + download + OCR
+
+lib/ocr_crawler/
+├── site.rb               # per-site value object (url, depth, selectors)
+├── config.rb             # JSON config loader (cached, reset_cache!)
+├── initializer.rb        # runtime setup (directories, GC, logging)
+├── logger.rb             # simple class-level Logger wrapper
+├── crawler.rb            # main orchestration (thread pool, queue)
+├── link_manager.rb       # link extraction & depth enforcement
+├── media_manager.rb      # unified media extraction (CSS selectors)
+├── image_manager.rb      # image-specific extraction (legacy)
+├── video_manager.rb      # video-specific extraction (legacy)
+├── downloader.rb         # HTTP download via HTTPClient
+├── document_processor.rb # page fetching via HTTPClient
+├── http_client.rb        # unified HTTP fetch with proxy/Tor support
+├── tor_manager.rb        # Tor circuit rotation (control port cookie auth)
+├── ffmpeg_helper.rb      # video frame extraction
+├── ocr_executor.rb       # Tesseract OCR via RTesseract
+├── result_recorder.rb    # JSON result persistence
+├── memory_manager.rb     # periodic GC trigger + file cleanup
+
+gui/
+├── application.rb        # main GUI window (sites table, run, output)
+├── config_serializer.rb  # GUI-specific config read/write
+
+docker-entrypoint.sh      # starts Tor + Privoxy, then CMD
+Dockerfile                # Ruby 3.4.8 + Tesseract + FFmpeg + Tor + GTK3
+```
+
+### Depth enforcement
+
+Each discovered link carries its parent site's `max_depth`, `media_selectors`, and `link_selectors` via an `extra` hash. The `LinkManager` checks `current_depth >= max_depth` and stops enqueuing when the limit is reached — child jobs never fall back to a global default.
+
+### Network layer
+
+`HTTPClient` wraps `Net::HTTP` and automatically detects Privoxy at `127.0.0.1:8118`. When a proxy is set, it uses `Net::HTTP::Proxy`. `TorManager` connects to Tor's control port (`127.0.0.1:9051`) using cookie authentication and issues `SIGNAL NEWNYM` for circuit rotation.
 
 ---
 
 ## Troubleshooting
 
-- "tesseract: command not found" - install Tesseract and ensure PATH updated.
-- "ffmpeg: command not found" - install FFmpeg and ensure PATH updated.
-- Downloads failing - adjust `user_agent` in `config.json`.
-- If `output/` is missing - verify write permissions and `config.json` `output_dir`.
-
----
-
-## Extending
-
-- Add selectors in `config.json` to target other tags or attributes.
-- Extend managers to perform additional processing, filtering, or remote storage.
-- Swap/override `MemoryManager` for a different GC strategy by dependency-injecting into `Crawler`.
-
----
-
-## Development notes
-
-- Core files:
-  - `lib/ocr_crawler/config.rb` - JSON config loader (cached, use `reset_cache!`)
-  - `lib/ocr_crawler/crawler.rb` - main orchestration (thread pool + per-site selectors)
-  - `lib/ocr_crawler/link_manager.rb` - link extraction & depth enforcement
-  - `lib/ocr_crawler/media_manager.rb` - unified selector-driven media extraction
-  - `lib/ocr_crawler/downloader.rb` - HTTP resource downloader
-  - `lib/ocr_crawler/ffmpeg_helper.rb` - frame extraction helper (calls FFmpeg)
-  - `lib/ocr_crawler/ocr_executor.rb` - RTesseract wrapper
-  - `lib/ocr_crawler/result_recorder.rb` - save JSON results
-  - `lib/ocr_crawler/http_client.rb` - unified HTTP fetching with proxy/Tor support
-  - `lib/ocr_crawler/tor_manager.rb` - Tor circuit rotation via control port
-  - `lib/ocr_crawler/site.rb` - per-site value object
-  - `bin/docker-gui.rb` - cross-platform Docker GUI launcher
-  - `docker-entrypoint.sh` - starts Tor + Privoxy, then runs CMD
-
-All modules/classes include short docstring comments.
+| Symptom | Likely cause |
+|---|---|
+| Media not downloaded | `media_selectors` empty or wrong — check `config.json` per-site |
+| Crawl goes beyond max_depth | Old Docker image — rebuild with `docker compose build` |
+| `EACCES` on output files | Docker container runs as root; host files owned by root |
+| Tor warnings in log | Normal; Tor running as root inside container |
+| "Failed to load module canberra-gtk-module" | Harmless GTK warning; suppressed via `GTK_MODULES=` env |
+| Downloads fail | Adjust `user_agent` or check proxy settings |
+| `output/` missing | Verify write permissions and `output_dir` in config |
+| Tesseract/FFmpeg not found | Install system packages, verify PATH |
 
 ---
 
 ## License
 
-MIT - see LICENSE file.
+MIT — see LICENSE file.

@@ -22,7 +22,7 @@ module OCRCrawler
         normalized = normalize_url(base_url, url)
         normalized ? build_result(normalized, base_url) : nil
       end.compact
-      results.uniq { |r| r[:source] }
+      results.uniq { |r| r[:url] }
     end
 
     private
@@ -48,7 +48,7 @@ module OCRCrawler
     end
 
     def build_result(absolute, base_url)
-      { type: :image, source: absolute, page: base_url }
+      { type: :image, url: absolute, source_page: base_url }
     end
   end
 end

@@ -1,8 +1,11 @@
 AllCops:
   TargetRubyVersion: 3.1
   NewCops: enable
+  Exclude:
+    - 'doc/**/*'
+    - '.yardoc/**/*'
 
-Style/EndOfLine:
+Layout/EndOfLine:
   EnforcedStyle: lf
 
 Layout/LineLength:
@@ -11,3 +14,33 @@ Layout/LineLength:
 Metrics/BlockLength:
   Exclude:
     - 'spec/**/*'
+    - 'lib/ocr_crawler/gui/**/*'
+
+Metrics/MethodLength:
+  Max: 15
+  Exclude:
+    - 'lib/ocr_crawler/gui/**/*'
+    - 'lib/ocr_crawler/config.rb'
+
+Metrics/AbcSize:
+  Max: 20
+  Exclude:
+    - 'lib/ocr_crawler/gui/**/*'
+    - 'lib/ocr_crawler/config.rb'
+
+Metrics/CyclomaticComplexity:
+  Max: 10
+  Exclude:
+    - 'lib/ocr_crawler/gui/**/*'
+    - 'lib/ocr_crawler/config.rb'
+
+Metrics/PerceivedComplexity:
+  Max: 10
+  Exclude:
+    - 'lib/ocr_crawler/gui/**/*'
+    - 'lib/ocr_crawler/config.rb'
+
+Metrics/ClassLength:
+  Max: 150
+  Exclude:
+    - 'lib/ocr_crawler/gui/**/*'

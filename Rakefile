@@ -13,9 +13,11 @@ rescue LoadError
   puts 'RSpec not available. Run `bundle install` if you want to enable testing.'
 end
 
+NULL_REDIRECT = RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/ ? '> NUL 2>&1' : '> /dev/null 2>&1'
+
 desc 'Run Rubocop to check for code style issues'
 task :lint do
-  if system('bundle show rubocop > NUL 2>&1') || system('bundle show rubocop > /dev/null 2>&1')
+  if system("bundle show rubocop #{NULL_REDIRECT}")
     sh 'bundle exec rubocop'
   else
     puts 'RuboCop not available. Run `bundle install` to enable linting.'
@@ -24,7 +26,7 @@ end
 
 desc 'Generate YARD documentation'
 task :docs do
-  if system('bundle show yard > NUL 2>&1') || system('bundle show yard > /dev/null 2>&1')
+  if system("bundle show yard #{NULL_REDIRECT}")
     sh 'bundle exec yard doc'
   else
     puts 'YARD not available. Run `bundle install` to enable docs generation.'
@@ -41,7 +43,7 @@ desc 'Run the OCR Web Crawler'
 task :run, [:url, :max_depth, :config] do |_, args|
   url = args[:url]
   max_depth = args[:max_depth]
-  config_path = args[:config] || File.join(Dir.pwd, 'config.yaml')
+  config_path = args[:config] || File.join(Dir.pwd, 'config.json')
 
   cmd_parts = []
   cmd_parts << 'ruby bin/run.rb'

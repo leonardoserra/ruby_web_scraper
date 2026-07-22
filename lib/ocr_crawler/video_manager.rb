@@ -10,15 +10,13 @@ module OCRCrawler
     def initialize(config)
       @config = config
       @selectors = Array(@config.dig(:selectors, :videos) || ['video'])
-      @frame_rate = @config[:frame_rate] || 1
-      @output_dir = @config[:output_dir]
     end
 
     # returns array of result hashes
     def extract(doc, base_url)
       nodes = @selectors.flat_map { |sel| selector_nodes(doc, sel) }
       results = nodes.map { |node| process_node(node, base_url) }.compact
-      results.uniq { |r| r[:source] }
+      results.uniq { |r| r[:url] }
     end
 
     private
@@ -52,7 +50,7 @@ module OCRCrawler
     end
 
     def build_result(absolute, base_url)
-      { type: :video, source: absolute, page: base_url }
+      { type: :video, url: absolute, source_page: base_url }
     end
   end
 end

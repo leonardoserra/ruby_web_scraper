@@ -1,6 +1,26 @@
 # frozen_string_literal: true
 
 require 'fileutils'
+require 'logger'
+
+# :nodoc:
+class Logger
+  class << self
+    private
+
+    def _instance
+      @_instance ||= new($stdout)
+    end
+
+    public
+
+    %i[info warn error].each do |method|
+      define_method(method) do |msg|
+        _instance.send(method, msg)
+      end
+    end
+  end
+end
 
 # OCRCrawler
 # Top-level namespace for the OCR web crawler components.

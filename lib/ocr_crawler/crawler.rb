@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 
 require 'set'
+require_relative 'media_manager'
+require_relative 'link_manager'
+require_relative 'memory_manager'
+require_relative 'document_processor'
+require_relative 'result_recorder'
 
 module OCRCrawler
-  # ::Crawler
-  #
-  # Purpose
-  #    Manage a Crawler instance running all its business logic components.
-  # Orchestrates the crawling process: manages the worker queue, threads,
-  # shared state (visited/results), and delegates fetching/extraction to other
-  # components. Responsible for merging discovered results and triggering GC.
+  # Orchestrates the crawl: thread pool, per-site selectors, media/link extraction.
   class Crawler
     def initialize(config = Config.load)
       @config = config
@@ -37,14 +36,26 @@ module OCRCrawler
 
     def setup_managers
       @recorder = ResultRecorder.new(@config)
-      @image_manager = ImageManager.new(@config)
-      @video_manager = VideoManager.new(@config)
+      @media_manager = MediaManager.new(@config)
       @link_manager = LinkManager.new(@config, @queue, @visited, @visited_mutex)
       @memory = MemoryManager.new
     end
 
     def enqueue_start_urls
-      Array(@config[:start_urls]).each { |u| @queue << { url: u.to_s, depth: 0 } }
+      sites = @config[:sites] || []
+      if sites.empty?
+        Array(@config[:start_urls]).each { |u| @queue << { url: u.to_s, depth: 0 } }
+        return
+      end
+      sites.each do |site|
+        @queue << {
+          url: site.url,
+          depth: 0,
+          media_selectors: site.media_selectors,
+          link_selectors: site.link_selectors,
+          max_depth: site.max_depth
+        }
+      end
     end
 
     def start_workers
@@ -64,46 +75,48 @@ module OCRCrawler
 
     def process_queue
       while (job = safe_dequeue)
-        url, depth = job.values_at(:url, :depth)
-        process_page(url, depth)
+        process_page(job)
         @memory.maybe_trigger_gc
       end
     end
 
-    def process_page(url, depth)
-      Logger.info("Processing #{url} (depth #{depth})")
-      doc = fetch_document(url)
+    def process_page(job)
+      Logger.info("Processing #{job[:url]} (depth #{job[:depth]})")
+      doc = fetch_document(job[:url])
       return unless doc
 
-      imgs, vids = extract_media(doc, url)
-      merge_results(imgs, vids)
-      enqueue_links_from(doc, url, depth)
+      results = extract_media(doc, job[:url], job[:media_selectors])
+      merge_results(results)
+      enqueue_links_from(doc, job[:url], job[:depth],
+                         max_depth: job[:max_depth],
+                         media_selectors: job[:media_selectors],
+                         link_selectors: job[:link_selectors])
     ensure
       doc&.remove
     end
 
     def fetch_document(url)
-      DocumentProcessor.fetch(url)
+      DocumentProcessor.fetch(url, @config)
     rescue StandardError => e
       Logger.warn("Failed to fetch #{url}: #{e.class}: #{e.message}")
       nil
     end
 
-    def extract_media(doc, url)
-      imgs = @image_manager.extract(doc, url) || []
-      vids = @video_manager.extract(doc, url) || []
-      [imgs, vids]
+    def extract_media(doc, url, selectors)
+      @media_manager.extract(doc, url, selectors) || []
     end
 
-    def merge_results(imgs, vids)
+    def merge_results(results)
       @results_mutex.synchronize do
-        @results.concat(imgs) unless imgs.empty?
-        @results.concat(vids) unless vids.empty?
+        @results.concat(results) unless results.empty?
       end
     end
 
-    def enqueue_links_from(doc, url, depth)
-      @link_manager.enqueue_links(doc, url, depth)
+    def enqueue_links_from(doc, url, depth, **extra)
+      @link_manager.enqueue_links(doc, url, depth,
+                                  site_opts: { link_selectors: extra[:link_selectors],
+                                               max_depth: extra[:max_depth] },
+                                  extra: extra)
     end
 
     def safe_dequeue
